@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-ink-800/40;
+  }
+  body {
+    @apply bg-ink-950 text-ink-100 font-body antialiased;
+  }
+  ::selection {
+    @apply bg-brand-500/30 text-brand-400;
+  }
+}
+
+/* ── Components ──────────────────────────────────────────────────────────── */
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-ink-900/60 border border-ink-800/60 rounded-2xl backdrop-blur-sm;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm
+           bg-brand-500 text-ink-950 hover:bg-brand-400
+           transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+           shadow-lg shadow-brand-500/20;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm
+           border border-ink-700 text-ink-200 hover:border-brand-500/60 hover:text-brand-400
+           transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+           text-ink-400 hover:text-ink-100 hover:bg-ink-800/50
+           transition-all duration-200;
+  }
+
+  /* Forms */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl bg-ink-900 border border-ink-700/80
+           text-ink-100 placeholder:text-ink-600
+           focus:outline-none focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/30
+           transition-all duration-200 text-sm;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-ink-300 mb-1.5;
+  }
+
+  /* Tags */
+  .section-tag {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold
+           border border-brand-500/30 bg-brand-500/10 text-brand-400;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-400 to-emerald-300 bg-clip-text text-transparent;
+  }
+
+  /* Glow effect */
+  .glow {
+    @apply shadow-lg shadow-brand-500/20;
+  }
+
+  /* Scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.ink.700') transparent;
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+@layer utilities {
+  .animate-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .slide-in {
+    animation: slideUp 0.4s ease-out;
+  }
+}
