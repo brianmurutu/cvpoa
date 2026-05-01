@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { FileText, Zap, Target, Star, Shield, Download, ChevronRight, CheckCircle2 } from 'lucide-react'
 import Pricing from '@/components/Pricing'
 import AnimatedText from '@/components/AnimatedText'
+import Footer from '@/components/Footer'
 
 const features = [
   {
@@ -63,9 +64,9 @@ export default function LandingPage() {
             <Link href="#pricing" className="hover:text-ink-100 transition-colors">Pricing</Link>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="btn-ghost text-sm">Sign in</Link>
-            <Link href="/signup" className="btn-primary text-sm py-2 px-4">Get Started Free</Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/login" className="btn-ghost text-xs sm:text-sm px-2 sm:px-4">Sign in</Link>
+            <Link href="/signup" className="btn-primary text-xs sm:text-sm py-2 px-3 sm:px-4">Get Started<span className="hidden sm:inline"> Free</span></Link>
           </div>
         </div>
       </nav>
@@ -84,12 +85,12 @@ export default function LandingPage() {
             Built for East Africa 🇰🇪
           </div>
 
-          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
             Land your dream job with{' '}
             <AnimatedText />
           </h1>
 
-          <p className="text-xl text-ink-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-ink-400 max-w-2xl mx-auto mb-10 leading-relaxed px-2">
             Create ATS-optimized resumes and cover letters in minutes.
             Pay via M-Pesa, Airtel Money, or card. Starting at just <strong className="text-ink-200">KES 30</strong>.
           </p>
@@ -222,25 +223,7 @@ export default function LandingPage() {
       <Pricing />
 
       {/* Footer */}
-      <footer className="border-t border-ink-800/40 py-10 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-brand-500 rounded-md flex items-center justify-center">
-              <FileText className="w-3 h-3 text-ink-950" />
-            </div>
-            <span className="font-display font-bold text-ink-300">
-              CV<span className="text-brand-400">Poa</span>
-            </span>
-          </Link>
-          <p className="text-xs text-ink-600">
-            © {new Date().getFullYear()} CVPoa. Made in Nairobi 🇰🇪
-          </p>
-          <div className="flex gap-5 text-xs text-ink-600">
-            <Link href="/login" className="hover:text-ink-400 transition-colors">Login</Link>
-            <Link href="/signup" className="hover:text-ink-400 transition-colors">Sign Up</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

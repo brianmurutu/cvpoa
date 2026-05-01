@@ -26,7 +26,7 @@ export default function AnimatedText() {
 
   return (
     <span 
-      className={`gradient-text inline-block transition-all duration-500 min-w-[300px] sm:min-w-[400px] text-left ${
+      className={`gradient-text inline-block transition-all duration-500 min-w-[280px] sm:min-w-[400px] text-center sm:text-left ${
         fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
       }`}
     >
