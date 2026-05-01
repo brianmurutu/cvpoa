@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { FileText, Zap, Target, Star, Shield, Download, ChevronRight, CheckCircle2 } from 'lucide-react'
 import Pricing from '@/components/Pricing'
+import AnimatedText from '@/components/AnimatedText'
 
 const features = [
   {
@@ -85,7 +86,7 @@ export default function LandingPage() {
 
           <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
             Land your dream job with{' '}
-            <span className="gradient-text">an AI-powered CV</span>
+            <AnimatedText />
           </h1>
 
           <p className="text-xl text-ink-400 max-w-2xl mx-auto mb-10 leading-relaxed">
