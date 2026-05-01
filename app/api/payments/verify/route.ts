@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase'
+import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server'
 
 const PLAN_DURATIONS: Record<string, number> = {
   quick: 1,        // 1 hour

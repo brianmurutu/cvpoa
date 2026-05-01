@@ -7,7 +7,7 @@ import {
   FileText, Plus, Clock, Zap, Star, Building2,
   LogOut, ChevronRight, FileCheck, Mail, Target, BarChart3,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 const quickLinks = [
   { href: '/builder', icon: Plus, label: 'Build a New CV', color: 'text-brand-400' },
