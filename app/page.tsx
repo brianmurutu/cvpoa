@@ -22,8 +22,8 @@ const features = [
   },
   {
     icon: FileText,
-    title: 'Multi-Template Export',
-    desc: 'Preview and download your CV in multiple stunning, ATS-friendly PDF templates.',
+    title: 'Career Roadmap Generator',
+    desc: 'Map out a step-by-step 6-month action plan to land your ultimate dream role.',
   },
   {
     icon: Star,
