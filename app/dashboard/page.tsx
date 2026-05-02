@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   FileText, Plus, Clock, Zap, Star, Building2,
   LogOut, ChevronRight, FileCheck, Mail, Target, BarChart3,
-  Activity, Trophy, Calendar, Map, Loader2
+  Activity, Trophy, Calendar, Map, Loader2, Send
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import CurrencySelector from '@/components/CurrencySelector'
@@ -18,6 +18,7 @@ const quickLinks = [
   { href: '/roadmap', icon: Map, label: 'Career Roadmap', color: 'text-emerald-400' },
   { href: '/analyzer', icon: Target, label: 'Analyze a Job Description', color: 'text-purple-400' },
   { href: '/review', icon: BarChart3, label: 'Review My CV', color: 'text-yellow-400' },
+  { href: 'https://t.me/tech_empire', icon: Send, label: 'Learn Digital Skills', color: 'text-[#0088cc]' },
 ]
 
 const plans = [
@@ -167,6 +168,8 @@ export default function DashboardPage() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  target={link.href.startsWith('http') ? '_blank' : undefined}
+                  rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   className="card p-5 flex items-center gap-4 hover:border-ink-700 transition-all duration-200 group"
                 >
                   <div className="w-10 h-10 rounded-xl bg-ink-800 flex items-center justify-center flex-shrink-0">
