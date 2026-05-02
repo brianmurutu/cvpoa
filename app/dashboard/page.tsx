@@ -98,7 +98,14 @@ export default function DashboardPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reference: response.reference, plan_id: plan.id }),
-        }).then(() => window.location.reload())
+        }).then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json()
+            alert('Verification failed: ' + (err.error || 'Unknown error'))
+          } else {
+            window.location.reload()
+          }
+        })
       },
       onClose: () => {},
     })

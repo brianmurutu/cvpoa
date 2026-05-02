@@ -36,7 +36,8 @@ export async function POST(request: Request) {
     const verifyData = await verifyRes.json()
 
     if (!verifyData.status || verifyData.data?.status !== 'success') {
-      return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
+      console.error('Paystack verification failed:', verifyData)
+      return NextResponse.json({ error: verifyData.message || 'Payment verification failed' }, { status: 400 })
     }
 
     // 3. Grant access using admin client (bypasses RLS)
@@ -56,7 +57,8 @@ export async function POST(request: Request) {
       if (error.code === '23505') {
         return NextResponse.json({ success: true, message: 'Already verified' })
       }
-      throw error
+      console.error('Supabase grant insert error:', error)
+      return NextResponse.json({ error: 'Database insertion failed: ' + error.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, expires_at: expiresAt })
