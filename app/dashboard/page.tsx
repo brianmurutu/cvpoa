@@ -34,11 +34,13 @@ export default function DashboardPage() {
   const [currency, setCurrency] = useState('KES')
   const [resumes, setResumes] = useState<any[]>([])
   const [loadingStats, setLoadingStats] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        setUserId(user.id)
         const { data } = await supabase
           .from('resumes')
           .select('*')
@@ -78,7 +80,7 @@ export default function DashboardPage() {
       amount: getPaystackAmount(plan.basePrice, currency),
       currency: currency,
       ref: `cvpoa_${plan.id}_${Date.now()}`,
-      metadata: { plan_id: plan.id },
+      metadata: { plan_id: plan.id, user_id: userId },
       callback: (response: { reference: string }) => {
         fetch('/api/payments/verify', {
           method: 'POST',
