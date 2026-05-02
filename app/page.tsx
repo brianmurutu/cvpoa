@@ -1,24 +1,29 @@
 import Link from 'next/link'
-import { FileText, Zap, Target, Star, Shield, Download, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { FileText, Zap, Target, Star, Shield, Download, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react'
 import Pricing from '@/components/Pricing'
 import AnimatedText from '@/components/AnimatedText'
 import Footer from '@/components/Footer'
 
 const features = [
   {
-    icon: Zap,
-    title: '4-Step Resume Builder',
-    desc: 'Fill in your details and our AI crafts a professional, ATS-optimized CV in seconds.',
+    icon: Sparkles,
+    title: 'Magic Bullet Rewrite',
+    desc: 'Instantly enhance weak CV bullet points into metric-driven, professional achievements.',
+  },
+  {
+    icon: Download,
+    title: 'LinkedIn Profile Import',
+    desc: 'Upload your LinkedIn PDF and auto-fill your entire CV in seconds. No more typing.',
   },
   {
     icon: Target,
-    title: 'ATS Keyword Optimizer',
-    desc: 'Paste a job description and instantly see which keywords you\'re missing.',
+    title: 'AI Mock Interviewer',
+    desc: 'Generate highly-specific interview questions based exactly on your CV and Target Job.',
   },
   {
     icon: FileText,
-    title: 'Cover Letter Generator',
-    desc: 'Get a tailored, compelling cover letter for every application in under 60 seconds.',
+    title: 'Multi-Template Export',
+    desc: 'Preview and download your CV in multiple stunning, ATS-friendly PDF templates.',
   },
   {
     icon: Star,
@@ -26,19 +31,14 @@ const features = [
     desc: 'Get an HR-level review with an ATS score, strengths, and specific improvements.',
   },
   {
-    icon: Download,
-    title: 'PDF & Word Export',
-    desc: 'Download your CV in both PDF and .docx formats, ready to send.',
-  },
-  {
-    icon: Shield,
-    title: 'Secure & Private',
-    desc: 'Your data is yours. Encrypted, stored securely, and never shared.',
+    icon: Zap,
+    title: 'Multi-Currency Checkout',
+    desc: 'Pay seamlessly via Mobile Money or Card in KES, NGN, GHS, ZAR, or USD.',
   },
 ]
 
 const stats = [
-  { value: '10k+', label: 'CVs Generated' },
+  { value: '5+', label: 'Currencies Supported' },
   { value: '94%', label: 'ATS Pass Rate' },
   { value: 'KES 30', label: 'Starting Price' },
   { value: '< 60s', label: 'Generation Time' },

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FileText, ArrowLeft, ArrowRight, Loader2, Check, Download, Sparkles, Upload } from 'lucide-react'
+import CVRenderer from '@/components/CVRenderer'
+import { FileText, ArrowLeft, ArrowRight, Loader2, Check, Download, Sparkles, Upload, MessageSquare } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,8 @@ export default function BuilderPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
+  const [resultId, setResultId] = useState<string | null>(null)
+  const [theme, setTheme] = useState('modern')
   const [rewriting, setRewriting] = useState<number | null>(null)
   const [importing, setImporting] = useState(false)
 
@@ -96,6 +99,7 @@ export default function BuilderPage() {
         setError(data.error || 'Something went wrong')
       } else {
         setResult(data.resume)
+        setResultId(data.id)
         setStep(4) // success state
       }
     } catch {
@@ -172,6 +176,10 @@ export default function BuilderPage() {
     a.download = `${form.fullName.replace(/\s+/g, '_')}_CV.json`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  const handlePrint = () => {
+    window.print()
   }
 
   return (
@@ -487,22 +495,53 @@ export default function BuilderPage() {
 
         {/* ── Step 4: Success ── */}
         {step === 4 && result && (
-          <div className="text-center py-10 animate-in">
-            <div className="w-16 h-16 bg-brand-500/20 border border-brand-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-brand-400" />
+          <div className="animate-in pb-20">
+            <div className="text-center py-10 print:hidden">
+              <div className="w-16 h-16 bg-brand-500/20 border border-brand-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-brand-400" />
+              </div>
+              <h2 className="font-display text-2xl font-bold text-ink-50 mb-2">Your CV is ready! 🎉</h2>
+              <p className="text-ink-400 text-sm mb-8">
+                Your AI-generated, ATS-optimized CV is ready. Select a template and export.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+                <div className="bg-ink-900 border border-ink-800 rounded-lg p-1 inline-flex">
+                  {['modern', 'corporate', 'creative'].map(t => (
+                    <button 
+                      key={t} 
+                      onClick={() => setTheme(t)} 
+                      className={`px-4 py-2 text-sm rounded-md capitalize transition-colors ${theme === t ? 'bg-brand-500 text-ink-950 font-medium' : 'text-ink-400 hover:text-ink-200'}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+                <button onClick={handlePrint} className="btn-primary">
+                  <Download className="w-4 h-4" /> Download PDF
+                </button>
+                <button onClick={handleDownloadJSON} className="btn-secondary">
+                  <Download className="w-4 h-4" /> JSON
+                </button>
+                {resultId && (
+                  <Link href={`/dashboard/interview/${resultId}`} className="btn-secondary">
+                    <MessageSquare className="w-4 h-4" /> Prepare for Interview
+                  </Link>
+                )}
+                <Link href="/dashboard" className="btn-ghost border border-ink-800">
+                  Dashboard
+                </Link>
+              </div>
             </div>
-            <h2 className="font-display text-2xl font-bold text-ink-50 mb-2">Your CV is ready! 🎉</h2>
-            <p className="text-ink-400 text-sm mb-8">
-              Your AI-generated, ATS-optimized CV has been saved to your dashboard.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button onClick={handleDownloadJSON} className="btn-secondary">
-                <Download className="w-4 h-4" />
-                Download JSON
-              </button>
-              <Link href="/dashboard" className="btn-primary">
-                Go to Dashboard
-              </Link>
+
+            {/* Live Preview Container */}
+            <div className="w-full overflow-x-auto bg-ink-900/50 rounded-2xl border border-ink-800/60 p-4 sm:p-8 flex justify-center print:border-none print:p-0 print:bg-transparent">
+               <div className="print:block" style={{ width: '210mm', minHeight: '297mm' }}>
+                  <CVRenderer data={{...form, ...result}} theme={theme} />
+               </div>
             </div>
           </div>
         )}

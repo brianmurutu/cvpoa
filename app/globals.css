@@ -89,3 +89,30 @@
     animation: slideUp 0.4s ease-out;
   }
 }
+
+/* ── Print Styles ────────────────────────────────────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #cv-preview, #cv-preview * {
+    visibility: visible;
+  }
+  #cv-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

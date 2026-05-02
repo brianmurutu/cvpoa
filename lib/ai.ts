@@ -327,5 +327,43 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
   const clean = text.replace(/```json|```/g, '').trim()
-  return JSON.parse(clean) as ExtractedProfile
+}
+
+// ── AI Mock Interviewer ────────────────────────────────────────────────────────
+
+export interface InterviewQA {
+  question: string
+  context: string
+  tips: string[]
+}
+
+export async function generateInterview(resumeJson: any, jd: string): Promise<InterviewQA[]> {
+  const prompt = `You are an expert technical recruiter and hiring manager conducting an interview for this specific role.
+
+Job Description:
+${jd || 'General Role'}
+
+Candidate's Resume:
+${JSON.stringify(resumeJson)}
+
+Based on the candidate's experience and the job description, generate the 5 most likely interview questions they will be asked. Focus on their specific experience gaps, their achievements, and the core skills needed for the role.
+
+Return ONLY valid JSON in this exact format. Do not use markdown backticks in the response.
+[
+  {
+    "question": "The interview question",
+    "context": "Why the interviewer is asking this based on their CV or the JD",
+    "tips": ["Tip 1 on how to answer", "Tip 2", "Tip 3"]
+  }
+]`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 2048,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : '[]'
+  const clean = text.replace(/```json|```/g, '').trim()
+  return JSON.parse(clean) as InterviewQA[]
 }
