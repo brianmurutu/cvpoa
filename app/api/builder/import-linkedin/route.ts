@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server'
 import { importLinkedIn } from '@/lib/ai'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import * as pdfParseModule from 'pdf-parse'
-
-// Handle ES module vs CommonJS interop for pdf-parse
-const pdfParse = (pdfParseModule as any).default || pdfParseModule
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +16,8 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer)
     
     // Parse PDF
-    const data = await (pdfParse as any)(buffer)
+    const pdfParse = require('pdf-parse')
+    const data = await pdfParse(buffer)
     if (!data.text) return NextResponse.json({ error: 'Could not extract text from PDF' }, { status: 400 })
 
     const profile = await importLinkedIn(data.text)

@@ -232,6 +232,7 @@ Provide honest, actionable feedback. Return ONLY valid JSON:
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
   const clean = text.replace(/```json|```/g, '').trim()
+  return JSON.parse(clean) as CVFeedback
 }
 
 // ── Magic Rewrite ─────────────────────────────────────────────────────────────
