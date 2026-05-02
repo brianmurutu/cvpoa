@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [resumes, setResumes] = useState<any[]>([])
   const [loadingStats, setLoadingStats] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
+  const [activeGrant, setActiveGrant] = useState<{expires_at: string} | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -47,6 +48,17 @@ export default function DashboardPage() {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
         if (data) setResumes(data)
+        const { data: grantData } = await supabase
+          .from('access_grants')
+          .select('expires_at')
+          .eq('user_id', user.id)
+          .gt('expires_at', new Date().toISOString())
+          .order('expires_at', { ascending: false })
+          .limit(1)
+          .single()
+        
+        if (grantData) setActiveGrant(grantData)
+
       }
       setLoadingStats(false)
     }
@@ -86,7 +98,7 @@ export default function DashboardPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reference: response.reference, plan_id: plan.id }),
-        }).then(() => router.refresh())
+        }).then(() => window.location.reload())
       },
       onClose: () => {},
     })
@@ -197,13 +209,23 @@ export default function DashboardPage() {
           </div>
           <div className="card p-6">
             <div className="flex items-start gap-3 mb-6">
-              <div className="w-8 h-8 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Clock className="w-4 h-4 text-yellow-400" />
-              </div>
+              {activeGrant ? (
+                <div className="w-8 h-8 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Zap className="w-4 h-4 text-green-400" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Clock className="w-4 h-4 text-yellow-400" />
+                </div>
+              )}
               <div>
-                <p className="font-medium text-ink-100">No active access</p>
+                <p className="font-medium text-ink-100">
+                  {activeGrant ? 'Active Access' : 'No active access'}
+                </p>
                 <p className="text-sm text-ink-400 mt-0.5">
-                  Purchase a plan to generate CVs, cover letters, and AI reviews.
+                  {activeGrant 
+                    ? `You have premium access until ${new Date(activeGrant.expires_at).toLocaleString()}`
+                    : 'Purchase a plan to generate CVs, cover letters, and AI reviews.'}
                 </p>
               </div>
             </div>
