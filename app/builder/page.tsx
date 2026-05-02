@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FileText, ArrowLeft, ArrowRight, Loader2, Check, Download } from 'lucide-react'
+import { FileText, ArrowLeft, ArrowRight, Loader2, Check, Download, Sparkles, Upload } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -54,6 +54,8 @@ export default function BuilderPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
+  const [rewriting, setRewriting] = useState<number | null>(null)
+  const [importing, setImporting] = useState(false)
 
   const [form, setForm] = useState<FormData>({
     fullName: '', email: '', phone: '', location: '',
@@ -100,6 +102,65 @@ export default function BuilderPage() {
       setError('Network error. Please try again.')
     }
     setLoading(false)
+  }
+
+  const handleImportLinkedIn = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setImporting(true)
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/builder/import-linkedin', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok && data.profile) {
+        const p = data.profile
+        setForm(prev => ({
+          ...prev,
+          fullName: p.fullName || prev.fullName,
+          email: p.email || prev.email,
+          phone: p.phone || prev.phone,
+          location: p.location || prev.location,
+          linkedin: p.linkedin || prev.linkedin,
+          summary: p.summary || prev.summary,
+          experience: p.experience?.length ? p.experience : prev.experience,
+          education: p.education?.length ? p.education : prev.education,
+          skills: p.skills || prev.skills,
+        }))
+        alert('Profile imported successfully! Please review the details.')
+      } else {
+        alert(data.error || 'Failed to import profile')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Network error during import')
+    }
+    setImporting(false)
+    e.target.value = '' 
+  }
+
+  const handleRewrite = async (i: number, text: string) => {
+    if (!text) return
+    setRewriting(i)
+    try {
+      const res = await fetch('/api/builder/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      if (res.ok && data.text) {
+        updateExp(i, 'responsibilities', data.text)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    setRewriting(null)
   }
 
   const handleDownloadJSON = () => {
@@ -156,6 +217,29 @@ export default function BuilderPage() {
         {/* ── Step 0: Personal Info ── */}
         {step === 0 && (
           <div className="space-y-5">
+            <div className="card p-5 bg-brand-500/5 border-brand-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-brand-400 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Save time with LinkedIn Import
+                </h3>
+                <p className="text-sm text-ink-400 mt-1">Upload your LinkedIn Profile PDF and we'll auto-fill your CV details.</p>
+              </div>
+              <label className="btn-secondary whitespace-nowrap cursor-pointer relative overflow-hidden">
+                {importing ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Importing...</>
+                ) : (
+                  <><Upload className="w-4 h-4" /> Upload PDF</>
+                )}
+                <input 
+                  type="file" 
+                  accept="application/pdf" 
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  onChange={handleImportLinkedIn}
+                  disabled={importing}
+                />
+              </label>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label className="label">Full Name *</label>
@@ -247,10 +331,19 @@ export default function BuilderPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="label">
-                    Responsibilities & Achievements *
-                    <span className="ml-1 text-xs text-ink-600">(be specific — AI will enhance)</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="label mb-0">
+                      Responsibilities & Achievements *
+                    </label>
+                    <button
+                      onClick={() => handleRewrite(i, exp.responsibilities)}
+                      disabled={rewriting === i || !exp.responsibilities}
+                      className="text-xs font-medium text-brand-400 hover:text-brand-300 disabled:opacity-50 transition-colors flex items-center gap-1"
+                    >
+                      {rewriting === i ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      Enhance with AI
+                    </button>
+                  </div>
                   <textarea value={exp.responsibilities}
                     onChange={(e) => updateExp(i, 'responsibilities', e.target.value)}
                     className="input min-h-[100px] resize-y"

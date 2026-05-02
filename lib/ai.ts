@@ -232,5 +232,99 @@ Provide honest, actionable feedback. Return ONLY valid JSON:
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
   const clean = text.replace(/```json|```/g, '').trim()
-  return JSON.parse(clean) as CVFeedback
+}
+
+// ── Magic Rewrite ─────────────────────────────────────────────────────────────
+
+export async function rewriteBullets(text: string): Promise<string> {
+  const prompt = `You are an expert CV writer. Rewrite the following responsibilities or bullet points into highly professional, achievement-oriented, ATS-friendly bullet points.
+Use action verbs and quantify results if the user provided metrics. Keep it concise but powerful.
+
+Text to rewrite:
+${text}
+
+Return ONLY the rewritten text as a bulleted list (using standard dash "-" for bullets). Do not include any introductions, explanations, or JSON formatting.`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 512,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  return message.content[0].type === 'text' ? message.content[0].text : ''
+}
+
+// ── LinkedIn Profile Importer ──────────────────────────────────────────────────
+
+export interface ExtractedProfile {
+  fullName: string
+  email: string
+  phone: string
+  location: string
+  linkedin: string
+  summary: string
+  experience: {
+    title: string
+    company: string
+    location: string
+    startDate: string
+    endDate: string
+    responsibilities: string
+  }[]
+  education: {
+    degree: string
+    institution: string
+    location: string
+    graduationYear: string
+    achievements: string
+  }[]
+  skills: string
+}
+
+export async function importLinkedIn(pdfText: string): Promise<ExtractedProfile> {
+  const prompt = `You are a data extraction AI. Extract the candidate's profile information from the following LinkedIn profile PDF text and map it exactly to the JSON structure provided.
+
+Profile Text:
+${pdfText.substring(0, 15000)}
+
+Extract all recent experience and education. Format dates cleanly (e.g. "Jan 2020", "Present").
+Return ONLY valid JSON in this exact format. Do not use markdown backticks in the response.
+{
+  "fullName": "string",
+  "email": "string",
+  "phone": "string",
+  "location": "string",
+  "linkedin": "string",
+  "summary": "string",
+  "experience": [
+    {
+      "title": "string",
+      "company": "string",
+      "location": "string",
+      "startDate": "string",
+      "endDate": "string",
+      "responsibilities": "string"
+    }
+  ],
+  "education": [
+    {
+      "degree": "string",
+      "institution": "string",
+      "location": "string",
+      "graduationYear": "string",
+      "achievements": "string"
+    }
+  ],
+  "skills": "string (comma separated list of top 10-15 skills)"
+}`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 2048,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const clean = text.replace(/```json|```/g, '').trim()
+  return JSON.parse(clean) as ExtractedProfile
 }
