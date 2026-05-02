@@ -366,6 +366,7 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '[]'
   const clean = text.replace(/```json|```/g, '').trim()
+  return JSON.parse(clean) as InterviewQA[]
 }
 
 // ── Career Roadmap Generator ───────────────────────────────────────────────────
