@@ -366,5 +366,46 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
 
   const text = message.content[0].type === 'text' ? message.content[0].text : '[]'
   const clean = text.replace(/```json|```/g, '').trim()
-  return JSON.parse(clean) as InterviewQA[]
+}
+
+// ── Career Roadmap Generator ───────────────────────────────────────────────────
+
+export interface RoadmapData {
+  dreamRole: string
+  missingSkills: string[]
+  recommendedCertifications: string[]
+  month1to2: string[]
+  month3to4: string[]
+  month5to6: string[]
+}
+
+export async function generateRoadmap(resumeJson: any, dreamRole: string): Promise<RoadmapData> {
+  const prompt = `You are an elite career coach. Analyze the candidate's current CV and their Dream Role, then generate a practical 6-month roadmap to help them bridge the gap.
+
+Candidate's Current CV:
+${JSON.stringify(resumeJson)}
+
+Dream Role: ${dreamRole}
+
+Identify what skills they are missing, recommend specific certifications or courses, and break down the actionable steps into three 2-month phases. Keep points concise and actionable.
+
+Return ONLY valid JSON in this exact format. Do not use markdown backticks in the response.
+{
+  "dreamRole": "string",
+  "missingSkills": ["skill 1", "skill 2"],
+  "recommendedCertifications": ["cert 1", "cert 2"],
+  "month1to2": ["actionable step 1", "actionable step 2", "actionable step 3"],
+  "month3to4": ["actionable step 1", "actionable step 2", "actionable step 3"],
+  "month5to6": ["actionable step 1", "actionable step 2", "actionable step 3"]
+}`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 2048,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const clean = text.replace(/```json|```/g, '').trim()
+  return JSON.parse(clean) as RoadmapData
 }
