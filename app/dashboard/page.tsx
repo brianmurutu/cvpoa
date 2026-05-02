@@ -8,6 +8,8 @@ import {
   LogOut, ChevronRight, FileCheck, Mail, Target, BarChart3,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import CurrencySelector from '@/components/CurrencySelector'
+import { convertPrice, getPaystackAmount } from '@/lib/currency'
 
 const quickLinks = [
   { href: '/builder', icon: Plus, label: 'Build a New CV', color: 'text-brand-400' },
@@ -17,15 +19,16 @@ const quickLinks = [
 ]
 
 const plans = [
-  { id: 'quick', icon: Zap, name: 'Quick Access', price: 'KES 30', hours: 1 },
-  { id: 'standard', icon: Star, name: 'Standard', price: 'KES 60', hours: 3 },
-  { id: 'business', icon: Building2, name: 'Business', price: 'KES 150', hours: 24 },
+  { id: 'quick', icon: Zap, name: 'Quick Access', basePrice: 30, hours: 1 },
+  { id: 'standard', icon: Star, name: 'Standard', basePrice: 60, hours: 3 },
+  { id: 'business', icon: Building2, name: 'Business', basePrice: 150, hours: 24 },
 ]
 
 export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [currency, setCurrency] = useState('KES')
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -39,8 +42,8 @@ export default function DashboardPage() {
     const handler = window.PaystackPop?.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
       email: 'user@example.com',
-      amount: plan.hours === 1 ? 3000 : plan.hours === 3 ? 6000 : 15000,
-      currency: 'KES',
+      amount: getPaystackAmount(plan.basePrice, currency),
+      currency: currency,
       ref: `cvpoa_${plan.id}_${Date.now()}`,
       metadata: { plan_id: plan.id },
       callback: (response: { reference: string }) => {
@@ -123,9 +126,12 @@ export default function DashboardPage() {
 
         {/* Access Plans */}
         <section className="mb-10">
-          <h2 className="text-sm font-semibold text-ink-400 uppercase tracking-wider mb-4">
-            Get Access
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-ink-400 uppercase tracking-wider">
+              Get Access
+            </h2>
+            <CurrencySelector selected={currency} onChange={setCurrency} />
+          </div>
           <div className="card p-6">
             <div className="flex items-start gap-3 mb-6">
               <div className="w-8 h-8 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -155,7 +161,7 @@ export default function DashboardPage() {
                       <Icon className={`w-4 h-4 ${plan.id === 'standard' ? 'text-brand-400' : 'text-ink-400'}`} />
                       <span className="text-sm font-medium text-ink-100">{plan.name}</span>
                     </div>
-                    <div className="font-display text-2xl font-bold text-ink-50">{plan.price}</div>
+                    <div className="font-display text-2xl font-bold text-ink-50">{convertPrice(plan.basePrice, currency)}</div>
                     <div className="text-xs text-ink-500 mt-1">{plan.hours}h access</div>
                   </button>
                 )

@@ -39,7 +39,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium text-ink-200">Office</p>
-                  <p className="text-ink-400">Nairobi, Kenya</p>
+                  <p className="text-ink-400">The Promode, Westlands, Nairobi kenya</p>
                   <p className="text-sm text-ink-500 mt-1">A Starlet Technologies Project</p>
                 </div>
               </div>

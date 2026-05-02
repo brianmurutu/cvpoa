@@ -1,13 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import { Check, Zap, Star, Building2 } from 'lucide-react'
+import CurrencySelector from './CurrencySelector'
+import { convertPrice, getPaystackAmount } from '@/lib/currency'
 
 const plans = [
   {
     id: 'quick',
     icon: Zap,
     name: 'Quick Access',
-    price: 'KES 30',
+    basePrice: 30,
     usd: '~$0.25',
     duration: '1 hour',
     description: 'Perfect for one urgent application closing today.',
@@ -23,7 +26,7 @@ const plans = [
     id: 'standard',
     icon: Star,
     name: 'Standard',
-    price: 'KES 60',
+    basePrice: 60,
     usd: '~$0.50',
     duration: '3 hours',
     description: '3x the time. Apply to multiple jobs, get AI review.',
@@ -39,7 +42,7 @@ const plans = [
     id: 'business',
     icon: Building2,
     name: 'Business',
-    price: 'KES 150',
+    basePrice: 150,
     usd: '~$1.15',
     duration: '24 hours',
     description: 'For CV writers, agencies, and cyber cafés.',
@@ -54,13 +57,15 @@ const plans = [
 ]
 
 export default function Pricing() {
+  const [currency, setCurrency] = useState('KES')
+
   const handlePaystack = (plan: typeof plans[0]) => {
     // @ts-ignore - Paystack loaded via script tag
     const handler = window.PaystackPop?.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
       email: 'user@example.com', // replace with actual user email from auth
-      amount: getPriceInKobo(plan.id),
-      currency: 'KES',
+      amount: getPaystackAmount(plan.basePrice, currency),
+      currency: currency,
       ref: `cvpoa_${plan.id}_${Date.now()}`,
       metadata: {
         plan_id: plan.id,
@@ -92,20 +97,24 @@ export default function Pricing() {
       <script async src="https://js.paystack.co/v1/inline.js" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="max-w-2xl mb-16">
-          <span className="section-tag">Pricing</span>
-          <h2 className="font-display text-4xl sm:text-5xl font-bold mt-4 leading-tight">
-            Pay only when{' '}
-            <span className="gradient-text">you need it.</span>
-          </h2>
-          <p className="mt-4 text-ink-300 text-lg">
-            No monthly subscriptions. Buy access when you need it. Pay via M-Pesa, Airtel Money, or card.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <div className="max-w-2xl">
+            <span className="section-tag">Pricing</span>
+            <h2 className="font-display text-4xl sm:text-5xl font-bold mt-4 leading-tight">
+              Pay only when{' '}
+              <span className="gradient-text">you need it.</span>
+            </h2>
+            <p className="mt-4 text-ink-300 text-lg">
+              No monthly subscriptions. Buy access when you need it. Pay via Mobile Money or card.
+            </p>
+          </div>
+          <CurrencySelector selected={currency} onChange={setCurrency} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const Icon = plan.icon
+            const displayPrice = convertPrice(plan.basePrice, currency)
             return (
               <div
                 key={plan.id}
@@ -136,8 +145,8 @@ export default function Pricing() {
                 </div>
 
                 <div className="mb-2">
-                  <span className="font-display text-4xl font-bold text-ink-50">{plan.price}</span>
-                  <span className="text-ink-500 text-sm ml-2">{plan.usd}</span>
+                  <span className="font-display text-4xl font-bold text-ink-50">{displayPrice}</span>
+                  {currency === 'KES' && <span className="text-ink-500 text-sm ml-2">{plan.usd}</span>}
                 </div>
                 <p className="text-ink-400 text-sm mb-6">{plan.description}</p>
 
@@ -160,7 +169,7 @@ export default function Pricing() {
                       : 'border border-ink-700 hover:border-brand-500/60 text-ink-100 hover:text-brand-400'
                   }`}
                 >
-                  Get Access — {plan.price}
+                  Get Access — {displayPrice}
                 </button>
               </div>
             )
@@ -169,9 +178,9 @@ export default function Pricing() {
 
         {/* Payment methods */}
         <div className="mt-10 flex flex-col items-center gap-3">
-          <p className="text-ink-500 text-xs">Secure payments via</p>
+          <p className="text-ink-500 text-xs">Secure payments via Paystack</p>
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            {['M-Pesa', 'Airtel Money', 'Card', 'Bank Transfer'].map((method) => (
+            {['M-Pesa', 'Mobile Money', 'Card', 'Bank Transfer'].map((method) => (
               <span
                 key={method}
                 className="text-xs font-mono text-ink-400 bg-ink-900/60 border border-ink-800 px-3 py-1.5 rounded-md"
@@ -184,13 +193,4 @@ export default function Pricing() {
       </div>
     </section>
   )
-}
-
-function getPriceInKobo(planId: string): number {
-  const prices: Record<string, number> = {
-    quick: 3000,
-    standard: 6000,
-    business: 15000,
-  }
-  return prices[planId] ?? 3000
 }

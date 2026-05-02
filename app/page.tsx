@@ -82,7 +82,7 @@ export default function LandingPage() {
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 section-tag mb-6">
             <span className="w-1.5 h-1.5 bg-brand-500 rounded-full animate-pulse" />
-            Built for East Africa 🇰🇪
+            Built by Africans for Africans 🌍
           </div>
 
           <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
