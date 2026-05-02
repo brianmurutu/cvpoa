@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FileText, ArrowLeft, Loader2, BarChart3 } from 'lucide-react'
+import { FileText, ArrowLeft, Loader2, BarChart3, Upload } from 'lucide-react'
 
 interface CVFeedback {
   overallScore: number
@@ -32,6 +32,35 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<CVFeedback | null>(null)
   const [error, setError] = useState('')
+  const [extracting, setExtracting] = useState(false)
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setExtracting(true)
+    setError('')
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/extract-pdf', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok && data.text) {
+        setCvText(data.text)
+      } else {
+        setError(data.error || 'Failed to extract text from PDF')
+      }
+    } catch (err) {
+      console.error(err)
+      setError('Network error during file upload')
+    }
+    setExtracting(false)
+    e.target.value = '' 
+  }
 
   const handleReview = async () => {
     if (!cvText.trim()) return
@@ -92,12 +121,26 @@ export default function ReviewPage() {
               />
             </div>
             <div>
-              <label className="label">Paste Your CV Text *</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-ink-300">Paste Your CV Text *</label>
+                <label className="text-xs font-medium text-brand-400 hover:text-brand-300 cursor-pointer flex items-center gap-1 transition-colors">
+                  {extracting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                  {extracting ? 'Extracting...' : 'Upload PDF'}
+                  <input 
+                    type="file" 
+                    accept="application/pdf" 
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={extracting}
+                  />
+                </label>
+              </div>
               <textarea
                 value={cvText}
                 onChange={(e) => setCvText(e.target.value)}
                 className="input min-h-[300px] resize-y"
-                placeholder="Paste your CV content here (plain text)..."
+                placeholder="Paste your CV content here or upload a PDF..."
+                disabled={extracting}
               />
             </div>
             <button
