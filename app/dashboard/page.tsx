@@ -1,16 +1,13 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import {
-  FileText, Plus, Clock, Zap, Star, Building2,
-  LogOut, ChevronRight, FileCheck, Mail, Target, BarChart3,
-  Activity, Trophy, Calendar, Map, Loader2, Send
+  FileText, Plus, ChevronRight, FileCheck, Mail, Target, BarChart3,
+  Activity, Trophy, Map, Send
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import CurrencySelector from '@/components/CurrencySelector'
-import { convertPrice, getPaystackAmount } from '@/lib/currency'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import PlansSection from '@/components/dashboard/PlansSection'
+import SignOutButton from '@/components/dashboard/SignOutButton'
+import DownloadResumeButton from '@/components/dashboard/DownloadResumeButton'
 
 const quickLinks = [
   { href: '/builder', icon: Plus, label: 'Build a New CV', color: 'text-brand-400' },
@@ -21,51 +18,32 @@ const quickLinks = [
   { href: 'https://t.me/tech_empire', icon: Send, label: 'Learn Digital Skills', color: 'text-[#0088cc]' },
 ]
 
-const plans = [
-  { id: 'quick', icon: Zap, name: 'Quick Access', basePrice: 30, hours: 1 },
-  { id: 'standard', icon: Star, name: 'Standard', basePrice: 60, hours: 3 },
-  { id: 'business', icon: Building2, name: 'Business', basePrice: 150, hours: 24 },
-]
+export default async function DashboardPage() {
+  const supabase = await createServerSupabaseClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
 
-export default function DashboardPage() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [loggingOut, setLoggingOut] = useState(false)
-  const [currency, setCurrency] = useState('KES')
-  const [resumes, setResumes] = useState<any[]>([])
-  const [loadingStats, setLoadingStats] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [activeGrant, setActiveGrant] = useState<{expires_at: string} | null>(null)
+  // Fetch resumes securely from the server
+  const { data: resumes = [] } = await supabase
+    .from('resumes')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
 
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setUserId(user.id)
-        const { data } = await supabase
-          .from('resumes')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-        if (data) setResumes(data)
-        const { data: grantData } = await supabase
-          .from('access_grants')
-          .select('expires_at')
-          .eq('user_id', user.id)
-          .gt('expires_at', new Date().toISOString())
-          .order('expires_at', { ascending: false })
-          .limit(1)
-          .single()
-        
-        if (grantData) setActiveGrant(grantData)
+  // Fetch active grant securely from the server
+  const { data: activeGrant } = await supabase
+    .from('access_grants')
+    .select('expires_at')
+    .eq('user_id', user.id)
+    .gt('expires_at', new Date().toISOString())
+    .order('expires_at', { ascending: false })
+    .limit(1)
+    .single()
 
-      }
-      setLoadingStats(false)
-    }
-    load()
-  }, [])
-
-  const latestResume = resumes[0]?.ai_output
+  const latestResume = resumes?.[0]?.ai_output
   const calculateStrength = () => {
     if (!latestResume) return 0
     let score = 0
@@ -77,44 +55,9 @@ export default function DashboardPage() {
   }
   const strength = calculateStrength()
 
-  const handleLogout = async () => {
-    setLoggingOut(true)
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
-  }
-
-  const handlePaystack = (plan: typeof plans[0]) => {
-    // @ts-ignore
-    const handler = window.PaystackPop?.setup({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-      email: 'user@example.com',
-      amount: getPaystackAmount(plan.basePrice, currency),
-      currency: currency,
-      ref: `cvpoa_${plan.id}_${Date.now()}`,
-      metadata: { plan_id: plan.id, user_id: userId },
-      callback: (response: { reference: string }) => {
-        fetch('/api/payments/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reference: response.reference, plan_id: plan.id }),
-        }).then(async (res) => {
-          if (!res.ok) {
-            const err = await res.json()
-            alert('Verification failed: ' + (err.error || 'Unknown error'))
-          } else {
-            window.location.reload()
-          }
-        })
-      },
-      onClose: () => {},
-    })
-    handler?.openIframe()
-  }
-
   return (
     <div className="min-h-screen bg-ink-950">
-      {/* Paystack */}
+      {/* Paystack script needed by the PlansSection Client Component */}
       <script async src="https://js.paystack.co/v1/inline.js" />
 
       {/* Header */}
@@ -134,14 +77,7 @@ export default function DashboardPage() {
               <Plus className="w-4 h-4" />
               New CV
             </Link>
-            <button
-              onClick={handleLogout}
-              disabled={loggingOut}
-              className="btn-ghost text-sm text-ink-500"
-            >
-              <LogOut className="w-4 h-4" />
-              {loggingOut ? 'Signing out...' : 'Sign out'}
-            </button>
+            <SignOutButton />
           </div>
         </div>
       </header>
@@ -155,28 +91,26 @@ export default function DashboardPage() {
           </div>
           
           {/* Career Stats Widget */}
-          {!loadingStats && (
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <div className="card px-4 py-3 flex items-center gap-3 min-w-[160px]">
-                <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-brand-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-ink-500 uppercase font-semibold tracking-wider">Profile Strength</p>
-                  <p className="text-xl font-bold text-ink-50">{strength}%</p>
-                </div>
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div className="card px-4 py-3 flex items-center gap-3 min-w-[160px]">
+              <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-brand-400" />
               </div>
-              <div className="card px-4 py-3 flex items-center gap-3 min-w-[160px]">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-ink-500 uppercase font-semibold tracking-wider">CVs Built</p>
-                  <p className="text-xl font-bold text-ink-50">{resumes.length}</p>
-                </div>
+              <div>
+                <p className="text-xs text-ink-500 uppercase font-semibold tracking-wider">Profile Strength</p>
+                <p className="text-xl font-bold text-ink-50">{strength}%</p>
               </div>
             </div>
-          )}
+            <div className="card px-4 py-3 flex items-center gap-3 min-w-[160px]">
+              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-xs text-ink-500 uppercase font-semibold tracking-wider">CVs Built</p>
+                <p className="text-xl font-bold text-ink-50">{resumes?.length || 0}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -206,76 +140,21 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Access Plans */}
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-ink-400 uppercase tracking-wider">
-              Get Access
-            </h2>
-            <CurrencySelector selected={currency} onChange={setCurrency} />
-          </div>
-          <div className="card p-6">
-            <div className="flex items-start gap-3 mb-6">
-              {activeGrant ? (
-                <div className="w-8 h-8 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Zap className="w-4 h-4 text-green-400" />
-                </div>
-              ) : (
-                <div className="w-8 h-8 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Clock className="w-4 h-4 text-yellow-400" />
-                </div>
-              )}
-              <div>
-                <p className="font-medium text-ink-100">
-                  {activeGrant ? 'Active Access' : 'No active access'}
-                </p>
-                <p className="text-sm text-ink-400 mt-0.5">
-                  {activeGrant 
-                    ? `You have premium access until ${new Date(activeGrant.expires_at).toLocaleString()}`
-                    : 'Purchase a plan to generate CVs, cover letters, and AI reviews.'}
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {plans.map((plan) => {
-                const Icon = plan.icon
-                return (
-                  <button
-                    key={plan.id}
-                    onClick={() => handlePaystack(plan)}
-                    className={`p-4 rounded-xl border text-left transition-all duration-200 hover:scale-[1.02] ${
-                      plan.id === 'standard'
-                        ? 'border-brand-500/60 bg-brand-500/5 hover:border-brand-500'
-                        : 'border-ink-700 hover:border-ink-600'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Icon className={`w-4 h-4 ${plan.id === 'standard' ? 'text-brand-400' : 'text-ink-400'}`} />
-                      <span className="text-sm font-medium text-ink-100">{plan.name}</span>
-                    </div>
-                    <div className="font-display text-2xl font-bold text-ink-50">{convertPrice(plan.basePrice, currency)}</div>
-                    <div className="text-xs text-ink-500 mt-1">{plan.hours}h access</div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </section>
+        {/* Access Plans - Extracted to Client Component */}
+        <PlansSection userId={user.id} activeGrant={activeGrant} />
 
         {/* Saved CVs */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-ink-400 uppercase tracking-wider">Your CVs</h2>
-            {resumes.length > 0 && (
+            {resumes && resumes.length > 0 && (
               <Link href="/builder" className="text-sm text-brand-400 hover:text-brand-300">
                 + Create New
               </Link>
             )}
           </div>
           
-          {loadingStats ? (
-            <div className="card p-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-ink-500" /></div>
-          ) : resumes.length === 0 ? (
+          {!resumes || resumes.length === 0 ? (
             <div className="card p-10 flex flex-col items-center justify-center text-center">
               <div className="w-12 h-12 bg-ink-800 rounded-xl flex items-center justify-center mb-4">
                 <FileCheck className="w-5 h-5 text-ink-600" />
@@ -318,17 +197,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-2">
-                            <button 
-                              onClick={() => {
-                                const blob = new Blob([JSON.stringify(r.ai_output, null, 2)], { type: 'application/json' })
-                                const url = URL.createObjectURL(blob)
-                                const a = document.createElement('a')
-                                a.href = url; a.download = 'CV.json'; a.click(); URL.revokeObjectURL(url)
-                              }}
-                              className="btn-ghost text-xs py-1.5 px-3"
-                            >
-                              Download JSON
-                            </button>
+                            <DownloadResumeButton data={r.ai_output} />
                             <Link href={`/dashboard/interview/${r.id}`} className="btn-secondary text-xs py-1.5 px-3 border-ink-700">
                               Prep Interview
                             </Link>
