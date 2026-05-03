@@ -100,7 +100,7 @@ Return ONLY valid JSON in this exact format:
 }`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -146,7 +146,7 @@ Instructions:
 Return ONLY the cover letter text, no JSON, no extra formatting.`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -187,7 +187,7 @@ Return ONLY valid JSON in this exact format:
 }`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -225,7 +225,7 @@ Provide honest, actionable feedback. Return ONLY valid JSON:
 }`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -247,7 +247,7 @@ ${text}
 Return ONLY the rewritten text as a bulleted list (using standard dash "-" for bullets). Do not include any introductions, explanations, or JSON formatting.`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 512,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -320,7 +320,7 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
 }`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -359,7 +359,7 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
 ]`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -401,7 +401,7 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
 }`
 
   const message = await anthropic.messages.create({
-    model: 'claude-opus-4-5',
+    model: 'claude-3-5-sonnet-latest',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })

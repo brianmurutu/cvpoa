@@ -160,9 +160,12 @@ export default function BuilderPage() {
       const data = await res.json()
       if (res.ok && data.text) {
         updateExp(i, 'responsibilities', data.text)
+      } else {
+        alert(data.error || 'Failed to enhance with AI.')
       }
     } catch (err) {
       console.error(err)
+      alert('Network error. Please try again.')
     }
     setRewriting(null)
   }
