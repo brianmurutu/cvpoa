@@ -1,15 +1,18 @@
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
+const Anthropic = require('@anthropic-ai/sdk');
 
-const envLocal = fs.readFileSync('.env.local', 'utf8');
-const env = {};
-envLocal.split('\n').forEach(line => {
-  const match = line.match(/^([^=]+)=(.*)$/);
-  if (match) env[match[1]] = match[2].trim();
-});
-
-const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-supabase.from('access_grants').select('*').then(res => {
-  console.log("GRANTS:", res.data);
-  if (res.error) console.error("ERROR:", res.error);
-});
+async function test() {
+  try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const message = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-latest',
+      max_tokens: 10,
+      messages: [{ role: 'user', content: 'Test' }]
+    });
+    console.log('SUCCESS:', message.content[0].text);
+  } catch (err) {
+    console.error('ERROR_NAME:', err.name);
+    console.error('ERROR_STATUS:', err.status);
+    console.error('ERROR_MESSAGE:', err.message);
+  }
+}
+test();
