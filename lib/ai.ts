@@ -1,8 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+// We use gemini-1.5-flash because it is incredibly fast and has a huge free tier (15 RPM)
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
 // ── Resume Generation ──────────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ Instructions:
 4. Extract and organize skills into categories (Technical, Soft Skills, Tools)
 5. Tailor everything to the target role if provided
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in this exact format. Do not use markdown formatting blocks around the response, just the raw JSON text.
 {
   "professionalSummary": "string",
   "experience": [
@@ -99,14 +99,8 @@ Return ONLY valid JSON in this exact format:
   }
 }`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
-  return text
+  const result = await model.generateContent(prompt)
+  return result.response.text()
 }
 
 // ── Cover Letter Generation ────────────────────────────────────────────────────
@@ -145,14 +139,8 @@ Instructions:
 
 Return ONLY the cover letter text, no JSON, no extra formatting.`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
-  return text
+  const result = await model.generateContent(prompt)
+  return result.response.text()
 }
 
 // ── Job Description Analyzer ───────────────────────────────────────────────────
@@ -174,7 +162,7 @@ export async function analyzeJobDescription(jd: string): Promise<JDAnalysis> {
 Job Description:
 ${jd}
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in this exact format. Do not use markdown formatting blocks around the response:
 {
   "jobTitle": "string",
   "hardSkills": ["string"],
@@ -186,13 +174,8 @@ Return ONLY valid JSON in this exact format:
   "companyCulture": "string (brief 1-sentence insight)"
 }`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const result = await model.generateContent(prompt)
+  const text = result.response.text() || '{}'
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean) as JDAnalysis
 }
@@ -214,7 +197,7 @@ export async function reviewCV(cvText: string, targetRole?: string): Promise<CVF
 CV Content:
 ${cvText}
 
-Provide honest, actionable feedback. Return ONLY valid JSON:
+Provide honest, actionable feedback. Return ONLY valid JSON without markdown formatting blocks:
 {
   "overallScore": number (0-100),
   "atsScore": number (0-100),
@@ -224,13 +207,8 @@ Provide honest, actionable feedback. Return ONLY valid JSON:
   "suggestion": "string (one most impactful change, 1-2 sentences)"
 }`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const result = await model.generateContent(prompt)
+  const text = result.response.text() || '{}'
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean) as CVFeedback
 }
@@ -246,13 +224,8 @@ ${text}
 
 Return ONLY the rewritten text as a bulleted list (using standard dash "-" for bullets). Do not include any introductions, explanations, or JSON formatting.`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 512,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  const result = await model.generateContent(prompt)
+  return result.response.text()
 }
 
 // ── LinkedIn Profile Importer ──────────────────────────────────────────────────
@@ -319,13 +292,8 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
   "skills": "string (comma separated list of top 10-15 skills)"
 }`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const result = await model.generateContent(prompt)
+  const text = result.response.text() || '{}'
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean) as ExtractedProfile
 }
@@ -358,13 +326,8 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
   }
 ]`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : '[]'
+  const result = await model.generateContent(prompt)
+  const text = result.response.text() || '[]'
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean) as InterviewQA[]
 }
@@ -400,13 +363,8 @@ Return ONLY valid JSON in this exact format. Do not use markdown backticks in th
   "month5to6": ["actionable step 1", "actionable step 2", "actionable step 3"]
 }`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const result = await model.generateContent(prompt)
+  const text = result.response.text() || '{}'
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean) as RoadmapData
 }
