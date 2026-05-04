@@ -21,9 +21,10 @@ async function grantAccess() {
     console.log("User not found!");
     return;
   }
-  console.log("Found user:", targetUser.id);
+  console.log("Found user:", targetUser.email, "ID:", targetUser.id);
   
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  // 1 hour from now
+  const expiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase.from('access_grants').insert({
     user_id: targetUser.id,
     plan_id: 'business',
